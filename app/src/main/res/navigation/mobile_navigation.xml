@@ -3,41 +3,42 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mobile_navigation"
-    app:startDestination="@+id/nav_home">
+    app:startDestination="@+id/nav_announcements">
 
     <fragment
-        android:id="@+id/nav_home"
-        android:name="com.sky.sakai.activities.ui.home.HomeFragment"
-        android:label="@string/menu_home"
-        tools:layout="@layout/fragment_home" />
+        android:id="@+id/nav_class"
+        android:name="com.sky.sakai.fragments.ClassFragment"
+        android:label="@string/menu_class"
+        tools:layout="@layout/fragment_class" />
 
     <fragment
-        android:id="@+id/nav_gallery"
-        android:name="com.sky.sakai.activities.ui.gallery.GalleryFragment"
-        android:label="@string/menu_gallery"
-        tools:layout="@layout/fragment_gallery" />
+        android:id="@+id/nav_announcements"
+        android:name="com.sky.sakai.fragments.AnnouncementsFragment"
+        android:label="@string/menu_announcements"
+        tools:layout="@layout/fragment_announcements">
+        <action
+            android:id="@+id/action_nav_announcements_to_nav_announcement_details"
+            app:destination="@id/nav_announcement_details" >
+            <argument android:defaultValue="@null"
+                android:name="announcement" />
+        </action>
+    </fragment>
 
     <fragment
-        android:id="@+id/nav_slideshow"
-        android:name="com.sky.sakai.activities.ui.slideshow.SlideshowFragment"
-        android:label="@string/menu_slideshow"
-        tools:layout="@layout/fragment_slideshow" />
+        android:id="@+id/nav_assignments"
+        android:name="com.sky.sakai.fragments.AssignmentsFragment"
+        android:label="@string/menu_assignments"
+        tools:layout="@layout/fragment_assignments" />
+
 
     <fragment
-        android:id="@+id/nav_tools"
-        android:name="com.sky.sakai.activities.ui.tools.ToolsFragment"
-        android:label="@string/menu_tools"
-        tools:layout="@layout/fragment_tools" />
+        android:id="@+id/nav_announcement_details"
+        android:name="com.sky.sakai.fragments.AnnouncementDetailsFragment"
+        android:label="Announcement"
+        tools:layout="@layout/fragment_announcement_details">
+        <argument
+            android:name="announcement"
+            app:argType="com.sky.sakai.models.Announcement" />
+    </fragment>
 
-    <fragment
-        android:id="@+id/nav_share"
-        android:name="com.sky.sakai.activities.ui.share.ShareFragment"
-        android:label="@string/menu_share"
-        tools:layout="@layout/fragment_share" />
-
-    <fragment
-        android:id="@+id/nav_send"
-        android:name="com.sky.sakai.activities.ui.send.SendFragment"
-        android:label="@string/menu_send"
-        tools:layout="@layout/fragment_send" />
 </navigation>

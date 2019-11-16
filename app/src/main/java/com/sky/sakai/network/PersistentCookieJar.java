@@ -3,7 +3,7 @@ package com.sky.sakai.network;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import com.sky.sakai.GlobalApplication;
+import com.sky.sakai.SakaiApplication;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,7 +21,7 @@ public class PersistentCookieJar implements CookieJar {
     private SharedPreferences sharedPreferences;
 
     public PersistentCookieJar(){
-        sharedPreferences = GlobalApplication.getAppContext().getSharedPreferences("cookies", Context.MODE_PRIVATE);
+        sharedPreferences = SakaiApplication.getAppContext().getSharedPreferences("cookies", Context.MODE_PRIVATE);
         cookies = readCookiesFromSharedPreferences();
 
     }

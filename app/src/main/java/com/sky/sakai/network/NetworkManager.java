@@ -1,6 +1,9 @@
 package com.sky.sakai.network;
 
-import com.sky.sakai.models.Class;
+import com.sky.sakai.models.Announcement;
+import com.sky.sakai.models.Assignment;
+import com.sky.sakai.models.Attachment;
+import com.sky.sakai.models.Site;
 import com.sky.sakai.models.User;
 
 import org.jetbrains.annotations.NotNull;
@@ -10,8 +13,14 @@ import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.safety.Whitelist;
+
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -27,7 +36,15 @@ public class NetworkManager {
     }
 
     public interface OnClassesRequestListener{
-        void onClassesReceived(ArrayList<Class> classes);
+        void onClassesReceived(ArrayList<Site> sites);
+    }
+
+    public interface OnAnnouncementsRequestListener{
+        void onAnnouncementsReceived(ArrayList<Announcement> announcements);
+    }
+
+    public interface OnAssignmentsRequestListener{
+        void onAssignmentsReceived(ArrayList<Assignment> assignments);
     }
 
     private static NetworkManager instance;
@@ -42,6 +59,9 @@ public class NetworkManager {
         cookieJar = new PersistentCookieJar();
         httpClient = new OkHttpClient.Builder()
                 .cookieJar(cookieJar)
+                .connectTimeout(30, TimeUnit.MINUTES)
+                .callTimeout(30, TimeUnit.MINUTES)
+                .readTimeout(30, TimeUnit.MINUTES)
                 .build();
     }
 
@@ -60,7 +80,7 @@ public class NetworkManager {
         httpClient.newCall(RequestProvider.getLoginGETRequest()).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-
+                listener.onLoginFailure();
             }
 
             @Override
@@ -107,10 +127,6 @@ public class NetworkManager {
                             }
 
                         }
-
-
-
-
                     }
                 });
 
@@ -119,30 +135,44 @@ public class NetworkManager {
 
     }
 
-
     public void getSites(final OnClassesRequestListener listener){
         httpClient.newCall(RequestProvider.getSitesRequest()).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-
+                e.printStackTrace();
             }
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
 
-                ArrayList<Class> classes = new ArrayList<>();
+                ArrayList<Site> sites = new ArrayList<>();
 
                 try {
-                    JSONObject jResponse = new JSONObject(response.body().string());
-                    JSONArray sites = jResponse.getJSONArray("site_collection");
+                    JSONObject responseJson = new JSONObject(response.body().string());
+                    JSONArray sitesJson = responseJson.getJSONArray("site_collection");
 
-                    for (int i = 0; i < sites.length(); i++){
-                        Class c = new Class();
+                    for (int i = 0; i < sitesJson.length(); i++){
+                        Site site = new Site();
+                        JSONObject siteJson = sitesJson.getJSONObject(i);
 
-                        c.EntityId = sites.getJSONObject(i).getString("entityId");
-                        c.Title = sites.getJSONObject(i).getString("title");
+                        String type = siteJson.getString("type");
 
-                        classes.add(c);
+                        if (type.equals("course")){
+                            site.Type = Site.SiteType.COURSE;
+
+                            site.Id = siteJson.getString("id");
+                            site.Title = siteJson.getString("title");
+                            site.Description = siteJson.getString("description");
+                            site.EntityUrl = siteJson.getString("entityURL");
+                            site.EntityId = siteJson.getString("entityId");
+                            site.Term = siteJson.getJSONObject("props").getString("term");
+
+
+                            site.save();
+                            sites.add(site);
+                        }
+
+
                     }
 
 
@@ -151,10 +181,134 @@ public class NetworkManager {
                     e.printStackTrace();
                 }
 
-                listener.onClassesReceived(classes);
+                listener.onClassesReceived(sites);
+            }
+        });
+    }
+
+    public void getAllAnnouncements(int n, int d, final OnAnnouncementsRequestListener listener){
+        httpClient.newCall(RequestProvider.getAnnouncementsRequest(300, 100)).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                try {
+                    ArrayList<Announcement> announcements = new ArrayList<>();
+                    JSONObject json = new JSONObject(response.body().string());
+
+                    JSONArray jsonAnouncements = json.getJSONArray("announcement_collection");
+
+                    for (int i = 0; i < jsonAnouncements.length(); i++){
+                        JSONObject jsonAnnouncement = jsonAnouncements.getJSONObject(i);
+                        Announcement announcement = new Announcement();
+                        announcement.Id = jsonAnnouncement.getString("id");
+                        announcement.AnnouncementId = jsonAnnouncement.getString("announcementId");
+                        announcement.SiteId = jsonAnnouncement.getString("siteId");
+                        announcement.CreatedBy = jsonAnnouncement.getString("createdByDisplayName");
+                        announcement.Title = jsonAnnouncement.getString("title");
+                        announcement.CreationDate = new Date(jsonAnnouncement.getLong("createdOn"));
+                        //announcement.Body = Jsoup.parse(jsonAnnouncement.getString("body").replace("<br />", "\n")).text();
 
 
+                        String body = jsonAnnouncement.getString("body");
+                        Whitelist whitelist = new Whitelist();
+                        whitelist.addTags("br");
+                        body = Jsoup.clean(body, whitelist);
+                        announcement.Body = body.replace("<br>", "\n").replace("&nbsp;", " ");
 
+                        JSONArray jasonAttachment = jsonAnnouncement.getJSONArray("attachments");
+
+                        for (int j = 0; j < jasonAttachment.length(); j++){
+                            Attachment attachment = new Attachment();
+                            attachment.Id = jasonAttachment.getJSONObject(j).getString("id");
+                            attachment.Name = jasonAttachment.getJSONObject(j).getString("name");
+                            attachment.Url = jasonAttachment.getJSONObject(j).getString("url");
+                            attachment.Type = jasonAttachment.getJSONObject(j).getString("type");
+
+                            announcement.Attachments.add(attachment);
+                        }
+
+
+                        announcement.save();
+                        announcements.add(announcement);
+                    }
+
+                    listener.onAnnouncementsReceived(announcements);
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    public void getAllAssignments(final OnAssignmentsRequestListener listener){
+        httpClient.newCall(RequestProvider.getAssignmentsRequest()).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                try {
+                    ArrayList<Assignment> assignments = new ArrayList<>();
+                    JSONObject json = new JSONObject(response.body().string());
+
+                    JSONArray assignmentsJson = json.getJSONArray("assignment_collection");
+
+                    for (int i = 0; i < assignmentsJson.length(); i++){
+                        JSONObject assignmentJson = assignmentsJson.getJSONObject(i);
+
+                        Assignment assignment = new Assignment();
+
+                        assignment.Id = assignmentJson.getString("id");
+                        assignment.EntityId = assignmentJson.getString("entityId");
+                        assignment.Title = Jsoup.clean(assignmentJson.getString("title"), new Whitelist());
+                        assignment.CreatedTime = new Date(assignmentJson.getJSONObject("timeCreated").getLong("time"));
+                        assignment.DueTime = new Date(assignmentJson.getJSONObject("dueTime").getLong("time"));
+                        assignment.ClosedTime = new Date(assignmentJson.getJSONObject("closeTime").getLong("time"));
+                        assignment.OpenTime = new Date(assignmentJson.getJSONObject("openTime").getLong("time"));
+                        assignment.LastModifiedDate = new Date(assignmentJson.getJSONObject("timeLastModified").getLong("time"));
+                        assignment.EntityURL = assignmentJson.getString("entityURL");
+
+                        String instructions = assignmentJson.getString("instructions");
+                        Whitelist whitelist = new Whitelist();
+                        whitelist.addTags("br");
+                        instructions = Jsoup.clean(instructions, whitelist);
+                        assignment.Instructions = instructions.replace("<br>", "\n").replace("&nbsp;", " ");
+
+                        JSONArray jasonAttachment = assignmentJson.getJSONArray("attachments");
+
+                        for (int j = 0; j < jasonAttachment.length(); j++){
+                            Attachment attachment = new Attachment();
+                            attachment.Name = jasonAttachment.getJSONObject(j).getString("name");
+                            attachment.Url = jasonAttachment.getJSONObject(j).getString("url");
+
+                            assignment.Attachments.add(attachment);
+                        }
+
+                        assignment.save();
+                        assignments.add(assignment);
+
+                    }
+
+                    Collections.sort(assignments, new Comparator<Assignment>() {
+                        @Override
+                        public int compare(Assignment a, Assignment b) {
+                            return a.DueTime.compareTo(b.DueTime);
+                        }
+                    });
+
+
+                    listener.onAssignmentsReceived(assignments);
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
     }

@@ -76,6 +76,7 @@ public class LoginActivity extends AppCompatActivity {
                                 Toast.makeText(LoginActivity.this, "Hello " + user.FullName, Toast.LENGTH_SHORT).show();
 
                                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                                intent.putExtra("user", user);
                                 startActivity(intent);
                             }
                         });
@@ -108,8 +109,6 @@ public class LoginActivity extends AppCompatActivity {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 requestPermissions(PERMS_INITIAL, 127);
                 // Get the result in onRequestPermissionsResult(int, String[], int[])
-            } else {
-                // Permission was granted, do your stuff here
             }
         }
     }

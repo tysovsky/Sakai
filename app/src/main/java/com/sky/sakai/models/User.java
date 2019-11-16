@@ -1,6 +1,8 @@
 package com.sky.sakai.models;
 
-public class User {
+import java.io.Serializable;
+
+public class User implements Serializable {
     public String Id;
     public String NetId;
     public String FullName;

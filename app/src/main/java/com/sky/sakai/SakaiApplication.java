@@ -3,7 +3,7 @@ package com.sky.sakai;
 import android.app.Application;
 import android.content.Context;
 
-public class GlobalApplication extends Application {
+public class SakaiApplication extends Application {
 
     private static Context appContext;
 
