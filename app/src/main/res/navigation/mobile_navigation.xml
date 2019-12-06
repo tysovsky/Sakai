@@ -18,7 +18,12 @@
         tools:layout="@layout/fragment_announcements">
         <action
             android:id="@+id/action_nav_announcements_to_nav_announcement_details"
-            app:destination="@id/nav_announcement_details" >
+            app:destination="@id/nav_announcement_details"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim">
+
             <argument android:defaultValue="@null"
                 android:name="announcement" />
         </action>
@@ -28,7 +33,15 @@
         android:id="@+id/nav_assignments"
         android:name="com.sky.sakai.fragments.AssignmentsFragment"
         android:label="@string/menu_assignments"
-        tools:layout="@layout/fragment_assignments" />
+        tools:layout="@layout/fragment_assignments" >
+        <action
+            android:id="@+id/action_nav_assignments_to_nav_assignment_details"
+            app:destination="@id/nav_assignment_details">
+
+            <argument android:defaultValue="@null"
+                android:name="assignment" />
+        </action>
+    </fragment>
 
 
     <fragment
@@ -39,6 +52,16 @@
         <argument
             android:name="announcement"
             app:argType="com.sky.sakai.models.Announcement" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_assignment_details"
+        android:name="com.sky.sakai.fragments.AssignmentDetailsFragment"
+        android:label="Assignment"
+        tools:layout="@layout/fragment_assignment_details">
+        <argument
+            android:name="assignment"
+            app:argType="com.sky.sakai.models.Assignment" />
     </fragment>
 
 </navigation>

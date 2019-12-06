@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context=".fragments.AnnouncementDetailsFragment">
+    tools:context=".fragments.AssignmentDetailsFragment">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/app_bar"
@@ -34,7 +34,7 @@
                     android:layout_height="wrap_content"
                     android:text="Title"
                     android:maxLines="3"
-                    android:id="@+id/tv_announcement_title"
+                    android:id="@+id/tv_assignment_title"
                     android:textSize="25dp"
                     android:textColor="#ffffffff"
                     android:padding="10dp"/>
@@ -57,7 +57,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="@dimen/text_margin"
-                android:id="@+id/tv_announcement_body"
+                android:id="@+id/tv_assignment_body"
                 android:text="TEXT" />
 
             <ListView

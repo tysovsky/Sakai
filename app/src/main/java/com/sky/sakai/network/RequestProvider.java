@@ -61,8 +61,41 @@ public class RequestProvider {
         return request;
     }
 
+    static Request getSiteAnnouncementsRequest(String siteId){
+        HttpUrl.Builder urlBuilder = HttpUrl.parse(SakaiURL.SITE_ANNOUNCEMENTS + siteId + ".json?d=3000&n=100").newBuilder();
+
+        Request request = new Request.Builder()
+                .url(urlBuilder.build())
+                .get()
+                .build();
+
+        return request;
+    }
+
     static Request getAssignmentsRequest(){
         HttpUrl.Builder urlBuilder = HttpUrl.parse(SakaiURL.USER_ASSIGNMENTS).newBuilder();
+
+        Request request = new Request.Builder()
+                .url(urlBuilder.build())
+                .get()
+                .build();
+
+        return request;
+    }
+
+    static Request getSiteAssignmentsRequest(String siteId){
+        HttpUrl.Builder urlBuilder = HttpUrl.parse(SakaiURL.SITE_ASSIGNMENTS + siteId + ".json").newBuilder();
+
+        Request request = new Request.Builder()
+                .url(urlBuilder.build())
+                .get()
+                .build();
+
+        return request;
+    }
+
+    static Request getSiteGradesRequest(String siteId){
+        HttpUrl.Builder urlBuilder = HttpUrl.parse(SakaiURL.SITE_GRADES + siteId + ".json").newBuilder();
 
         Request request = new Request.Builder()
                 .url(urlBuilder.build())

@@ -6,11 +6,13 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
 import android.util.Log;
+import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.View;
 
 import androidx.annotation.NonNull;
+import androidx.core.view.GravityCompat;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -21,6 +23,7 @@ import com.sky.sakai.R;
 import com.sky.sakai.models.Site;
 import com.sky.sakai.models.User;
 import com.sky.sakai.network.NetworkManager;
+import com.sky.sakai.storage.DatabaseManager;
 
 import androidx.drawerlayout.widget.DrawerLayout;
 
@@ -40,6 +43,9 @@ public class MainActivity extends AppCompatActivity
 
     private AppBarConfiguration mAppBarConfiguration;
     NavigationView navigationView;
+    DrawerLayout drawer;
+
+    private HashMap<String, Site> sitesMap = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,7 +53,7 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        drawer = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.nav_view);
 
 
@@ -78,25 +84,34 @@ public class MainActivity extends AppCompatActivity
 
                 if (menuItem.getTitle().equals(getResources().getString(R.string.menu_assignments))){
                     Navigation.findNavController(MainActivity.this, R.id.nav_host_fragment).navigate(R.id.nav_assignments);
+                    drawer.closeDrawers();
                     return false;
                 }
 
                 if (menuItem.getTitle().equals(getResources().getString(R.string.menu_announcements))){
                     Navigation.findNavController(MainActivity.this, R.id.nav_host_fragment).navigate(R.id.nav_announcements);
+                    drawer.closeDrawers();
                     return false;
                 }
 
 
                 Bundle bundle = new Bundle();
-                //bundle.putSerializable("announcement", adapter.getItem(position));
-                Navigation.findNavController(MainActivity.this, R.id.nav_host_fragment).navigate(R.id.nav_class);
-                //Navigation.findNavController(view).navigate(R.id.nav_announcement_details, bundle);
-                return false;
+                bundle.putSerializable("site", sitesMap.get(menuItem.toString()));
+                Navigation.findNavController(MainActivity.this, R.id.nav_host_fragment).navigate(R.id.nav_class, bundle);
+                drawer.closeDrawer(Gravity.LEFT);
+                return true;
             }
         });
 
 
+        //onClassesReceived(DatabaseManager.getInstance().getAllSites());
+
         NetworkManager.getInstance().getSites(this);
+    }
+
+
+    public void setTitle(String title){
+        getSupportActionBar().setTitle(title);
     }
 
 
@@ -110,18 +125,23 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onClassesReceived(ArrayList<Site> sites) {
 
+        for (Site site: sites){
+            if(DatabaseManager.getInstance().saveSite(site)){
+
+            }
+        }
+
         final HashMap<String, ArrayList<Site>> sitesByTerm = new HashMap<>();
 
         for (int i = 0; i < sites.size(); i++){
 
             String term = sites.get(i).Term;
 
-            if(sitesByTerm.containsKey(term)){
-                sitesByTerm.get(term).add(sites.get(i));
-            }
-            else{
+            if(!sitesByTerm.containsKey(term)){
                 sitesByTerm.put(term, new ArrayList<Site>());
+
             }
+            sitesByTerm.get(term).add(sites.get(i));
 
         }
 
@@ -167,6 +187,7 @@ public class MainActivity extends AppCompatActivity
                     SubMenu termGroup = m.addSubMenu(key);
 
                     for (int i = 0; i < sitesByTerm.get(key).size(); i++){
+                        sitesMap.put(sitesByTerm.get(key).get(i).Title, sitesByTerm.get(key).get(i));
                         termGroup.add(sitesByTerm.get(key).get(i).Title);
                     }
                 }

@@ -28,22 +28,20 @@ public class AssignmentsAdapter extends ArrayAdapter<Assignment> {
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
         if(convertView == null)
-            convertView = LayoutInflater.from(getContext()).inflate(R.layout.view_announcement, parent, false);
+            convertView = LayoutInflater.from(getContext()).inflate(R.layout.view_assignment, parent, false);
 
-        TextView tvTitle = convertView.findViewById(R.id.tv_announcement_title);
-        TextView tvBody = convertView.findViewById(R.id.tv_announcement_body);
-        TextView tvDate = convertView.findViewById(R.id.tv_announcement_date);
-        TextView tvAuthor = convertView.findViewById(R.id.tv_announcement_author);
+        TextView tvTitle = convertView.findViewById(R.id.tv_assignment_title);
+        TextView tvBody = convertView.findViewById(R.id.tv_assignment_body);
+        TextView tvDate = convertView.findViewById(R.id.tv_assignment_date);
 
         Assignment a = getItem(position);
 
         tvTitle.setText(a.Title);
         tvBody.setText(a.Instructions);
-        //tvAuthor.setText("by " + a.CreatedBy);
 
         String pattern = "MM/dd/yyyy HH:mm:ss";
         DateFormat df = new SimpleDateFormat(pattern);
-        //tvDate.setText(df.format(a.CreationDate));
+        tvDate.setText(df.format(a.DueTime));
 
 
         return convertView;

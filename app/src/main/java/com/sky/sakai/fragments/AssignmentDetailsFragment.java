@@ -14,9 +14,9 @@ import androidx.fragment.app.Fragment;
 import com.sky.sakai.R;
 import com.sky.sakai.adapters.AttachmentsAdapter;
 import com.sky.sakai.models.Announcement;
+import com.sky.sakai.models.Assignment;
 
-public class AnnouncementDetailsFragment extends Fragment {
-
+public class AssignmentDetailsFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -27,19 +27,19 @@ public class AnnouncementDetailsFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_announcement_details, container, false);
+        View view = inflater.inflate(R.layout.fragment_assignment_details, container, false);
 
-        Announcement announcement = (Announcement)getArguments().getSerializable("announcement");
+        Assignment assignment = (Assignment) getArguments().getSerializable("assignment");
 
-        TextView tvTitle = view.findViewById(R.id.tv_announcement_title);
-        TextView tvBody = view.findViewById(R.id.tv_announcement_body);
+        TextView tvTitle = view.findViewById(R.id.tv_assignment_title);
+        TextView tvBody = view.findViewById(R.id.tv_assignment_body);
 
-        tvTitle.setText(announcement.Title);
-        tvBody.setText(announcement.Body);
+        tvTitle.setText(assignment.Title);
+        tvBody.setText(assignment.Instructions);
 
-        if(announcement.Attachments.size() > 0){
+        if(assignment.Attachments.size() > 0){
             ListView attachmentsListView = view.findViewById(R.id.lv_attachments);
-            AttachmentsAdapter adapter = new AttachmentsAdapter(getContext(), announcement.Attachments);
+            AttachmentsAdapter adapter = new AttachmentsAdapter(getContext(), assignment.Attachments);
             attachmentsListView.setAdapter(adapter);
         }
 
