@@ -66,7 +66,7 @@ public class Assignment implements Serializable {
                 Whitelist whitelist = new Whitelist();
                 whitelist.addTags("br");
                 instructions = Jsoup.clean(instructions, whitelist);
-                assignment.Instructions = instructions.replace("<br>", "\n").replace("&nbsp;", " ").replaceAll("[\n]{2,}", "\n");;
+                assignment.Instructions = instructions.replace("<br>", "\n").replace("&nbsp;", " ").replaceAll("[\n]{2,}", "\n").replace("\n ", "\n");;
 
                 JSONArray jasonAttachment = assignmentJson.getJSONArray("attachments");
 

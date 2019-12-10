@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -33,8 +34,13 @@ public class AnnouncementsAdapter extends ArrayAdapter<Announcement> {
         TextView tvBody = convertView.findViewById(R.id.tv_announcement_body);
         TextView tvDate = convertView.findViewById(R.id.tv_announcement_date);
         TextView tvAuthor = convertView.findViewById(R.id.tv_announcement_author);
+        ImageView ivAttachment = convertView.findViewById(R.id.iv_attachment);
 
         Announcement a = getItem(position);
+
+        if(a.Attachments.size() > 0){
+            ivAttachment.setVisibility(View.VISIBLE);
+        }
 
         tvTitle.setText(a.Title);
         tvBody.setText(a.Body);

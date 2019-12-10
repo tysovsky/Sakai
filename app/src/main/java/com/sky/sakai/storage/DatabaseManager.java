@@ -23,7 +23,7 @@ import java.util.Map;
 public class DatabaseManager extends SQLiteOpenHelper {
 
     final private static String DATABASE_NAME = "SakaiDB";
-    final private static int DATABASE_VERSION = 1;
+    final private static int DATABASE_VERSION = 2;
 
 
 

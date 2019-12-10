@@ -29,7 +29,7 @@ public class GradesFragment extends Fragment implements NetworkManager.OnGradesR
 
     private ListView lvGrades;
     private GradesAdapter adapter;
-    private ArrayList<Grade> mGrades = new ArrayList<>();
+    private ArrayList<Grade> mGrades;
     private Site site;
 
 
@@ -46,6 +46,7 @@ public class GradesFragment extends Fragment implements NetworkManager.OnGradesR
             site = (Site)getArguments().getSerializable("site");
 
 
+        mGrades = DatabaseManager.getInstance().getGradesForSite(site.Id);
         adapter = new GradesAdapter(getContext(), mGrades);
         lvGrades.setAdapter(adapter);
 

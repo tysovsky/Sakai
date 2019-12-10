@@ -54,6 +54,7 @@ public class Announcement implements Serializable {
                 whitelist.addTags("br");
                 body = Jsoup.clean(body, whitelist);
                 announcement.Body = body.replace("<br>", "\n").replace("&nbsp;", " ").replaceAll("[\n]{2,}", "\n");
+                announcement.Body = announcement.Body.replace("\n ", "\n");
 
                 JSONArray jasonAttachment = jsonAnnouncement.getJSONArray("attachments");
 

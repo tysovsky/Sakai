@@ -1,7 +1,9 @@
 package com.sky.sakai.activities;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -36,7 +38,10 @@ public class LoginActivity extends AppCompatActivity implements NetworkManager.O
     private CredentialsClient credentialsClient;
     private EditText usernameEditText, passwordEditText;
     Button loginButton;
+    ProgressBar progressBar;
 
+
+    String username, password;
 
 
     @Override
@@ -48,7 +53,7 @@ public class LoginActivity extends AppCompatActivity implements NetworkManager.O
         usernameEditText = findViewById(R.id.username);
         passwordEditText = findViewById(R.id.password);
         loginButton = findViewById(R.id.login);
-        final ProgressBar loadingProgressBar = findViewById(R.id.loading);
+        progressBar = findViewById(R.id.loading);
 
         TextWatcher loginButtonEnabler = new TextWatcher() {
             @Override
@@ -77,9 +82,10 @@ public class LoginActivity extends AppCompatActivity implements NetworkManager.O
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                loginButton.setEnabled(false);
-
+                progressBar.setVisibility(View.VISIBLE);
+                loginButton.setVisibility(View.GONE);
+                username = usernameEditText.getText().toString();
+                password = passwordEditText.getText().toString();
                 NetworkManager.getInstance().login(usernameEditText.getText().toString(), passwordEditText.getText().toString(), LoginActivity.this);
             }
         });
@@ -91,64 +97,52 @@ public class LoginActivity extends AppCompatActivity implements NetworkManager.O
                 .build();
         this.credentialsClient = Credentials.getClient(this, options);
 
-        //autoLogin();
-    }
+        SharedPreferences sp = getSharedPreferences("Sakai", Context.MODE_PRIVATE);
 
-    public void autoLogin(){
-        CredentialRequest credentialRequest = new CredentialRequest.Builder()
-                .setPasswordLoginSupported(true)
-                .build();
+        if (sp.contains("Username")){
+            username = sp.getString("Username", "");
+            password = sp.getString("Password", "");
 
-        this.credentialsClient.request(credentialRequest).addOnCompleteListener(new OnCompleteListener<CredentialRequestResponse>() {
-            @Override
-            public void onComplete(@NonNull Task<CredentialRequestResponse> task) {
-                if (task.isSuccessful() && task.getResult() != null) {
-                    Credential c = task.getResult().getCredential();
+            usernameEditText.setText(username);
+            passwordEditText.setText(password);
 
-                    NetworkManager.getInstance().login(c.getId(), c.getPassword(), LoginActivity.this);
-
-                    //signInWithCredentials(task.getResult().getCredential());
-                }
-            }
-        });
+            loginButton.setVisibility(View.GONE);
+            progressBar.setVisibility(View.VISIBLE);
+            NetworkManager.getInstance().login(username, password, this);
+        }
     }
 
     public void requestPermissions(){
         String[] PERMS_INITIAL={
                 Manifest.permission.INTERNET,
-                Manifest.permission.ACCESS_NETWORK_STATE
+                Manifest.permission.ACCESS_NETWORK_STATE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.READ_EXTERNAL_STORAGE
         };
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(PERMS_INITIAL, 127);
-                // Get the result in onRequestPermissionsResult(int, String[], int[])
+            for (String permission: PERMS_INITIAL){
+                if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+                    requestPermissions(PERMS_INITIAL, 127);
+                    break;
+                }
             }
+
         }
     }
 
     @Override
     public void onLoginSuccess(User loggedInUser) {
         final User user = loggedInUser;
+
+        SharedPreferences.Editor editor = getSharedPreferences("Sakai", Context.MODE_PRIVATE).edit();
+        editor.putString("Username", username);
+        editor.putString("Password", password);
+        editor.commit();
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                loginButton.setEnabled(true);
+                progressBar.setVisibility(View.GONE);
                 Toast.makeText(LoginActivity.this, "Hello " + user.FullName, Toast.LENGTH_SHORT).show();
-
-                /*
-                Credential credential = new Credential.Builder(usernameEditText.getText().toString())
-                        .setPassword(passwordEditText.getText().toString())
-                        .build();
-
-                LoginActivity.this.credentialsClient.save(credential).addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-
-                    }
-                });
-
-                 */
-
                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                 intent.putExtra("user", user);
                 startActivity(intent);
@@ -162,7 +156,8 @@ public class LoginActivity extends AppCompatActivity implements NetworkManager.O
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                loginButton.setEnabled(true);
+                loginButton.setVisibility(View.VISIBLE);
+                progressBar.setVisibility(View.GONE);
                 Toast.makeText(LoginActivity.this, "Sign In Failed. Please try again.", Toast.LENGTH_SHORT).show();
             }
         });

@@ -1,5 +1,8 @@
 package com.sky.sakai.network;
 
+import android.os.Environment;
+
+import com.sky.sakai.SakaiApplication;
 import com.sky.sakai.models.Announcement;
 import com.sky.sakai.models.Assignment;
 import com.sky.sakai.models.Attachment;
@@ -16,6 +19,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.safety.Whitelist;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,6 +31,8 @@ import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
 import okhttp3.Response;
+import okio.BufferedSink;
+import okio.Okio;
 
 public class NetworkManager {
 
@@ -50,6 +56,10 @@ public class NetworkManager {
 
     public interface OnGradesRequestListener{
         void onGradesReceived(ArrayList<Grade> grades);
+    }
+
+    public interface OnAttachmentDownloadedListener{
+        void onAttachmentDownloaded(String filename);
     }
 
     private static NetworkManager instance;
@@ -220,6 +230,25 @@ public class NetworkManager {
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                 listener.onGradesReceived(Grade.parseJsonGradesList(response.body().string()));
+            }
+        });
+    }
+
+    public void downloadAttachment(final Attachment attachment, OnAttachmentDownloadedListener listener){
+        httpClient.newCall(RequestProvider.getAttachmentRequest(attachment.Url)).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                File downloadedFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) , attachment.Name);
+                BufferedSink sink = Okio.buffer(Okio.sink(downloadedFile));
+                sink.writeAll(response.body().source());
+                sink.close();
+
+                listener.onAttachmentDownloaded(downloadedFile.getPath());
             }
         });
     }

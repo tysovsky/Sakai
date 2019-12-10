@@ -104,4 +104,15 @@ public class RequestProvider {
 
         return request;
     }
+
+    static Request getAttachmentRequest(String attachmentURL){
+        HttpUrl.Builder urlBuilder = HttpUrl.parse(attachmentURL).newBuilder();
+
+        Request request = new Request.Builder()
+                .url(urlBuilder.build())
+                .get()
+                .build();
+
+        return request;
+    }
 }
